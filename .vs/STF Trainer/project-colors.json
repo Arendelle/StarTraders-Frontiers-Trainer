@@ -1,0 +1,11 @@
+{
+  "Version": 1,
+  "ProjectMap": {
+    "ac4b502a-f5eb-4202-9431-6f331fa7c454": {
+      "ProjectGuid": "ac4b502a-f5eb-4202-9431-6f331fa7c454",
+      "DisplayName": "STF Trainer",
+      "ColorIndex": 0
+    }
+  },
+  "NextColorIndex": 1
+}
