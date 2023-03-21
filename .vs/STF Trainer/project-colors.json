@@ -5,6 +5,11 @@
       "ProjectGuid": "ac4b502a-f5eb-4202-9431-6f331fa7c454",
       "DisplayName": "STF Trainer",
       "ColorIndex": 0
+    },
+    "a2fe74e1-b743-11d0-ae1a-00a0c90fffc3": {
+      "ProjectGuid": "a2fe74e1-b743-11d0-ae1a-00a0c90fffc3",
+      "DisplayName": "杂项文件",
+      "ColorIndex": -1
     }
   },
   "NextColorIndex": 1

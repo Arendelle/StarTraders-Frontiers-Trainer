@@ -74,33 +74,62 @@ namespace STF_Trainer
                 {
                     GameProgressAvailable = true;
                     gameLoop.Enabled = true;
-                    label1.Text = "游戏进程状态：正常";
+                    label1.Text = "Game status: Running";
+                    label1.ForeColor = Color.Green;
                     GameProcessHandle = p.Handle;
                     GameBaseAddress = p.MainModule.BaseAddress;
-                    Console.WriteLine("BaseAddr" + p.MainModule.BaseAddress);
-                    Console.WriteLine("EntryPointAddr" + p.MainModule.EntryPointAddress);
-
-                    Console.WriteLine(assembleResourceAddress(ResourceTypes.Turn));
                 }
             }
             if (!GameProgressAvailable) 
             {
                 gameLoop.Enabled = false;
                 GameBaseAddress = IntPtr.Zero;
-                label1.Text = "游戏进程状态：未检测到";
+                label1.Text = "Game status: Offline";
+                label1.ForeColor = Color.Red;
             }
         }
 
-        int prevTurnValue = 0;
+        int[] prevValue = new int[] { 0, 0, 0 };
+        Boolean[] valueLock = new Boolean[] { false, false, false };
         private void gameLoop_Tick(object sender, EventArgs e)
-        {
-            
+         {
+            // 若存在锁定，则写回对应的资源
+            foreach (Control c in Controls)
+            {
+                if (c is CheckBox && c.Tag != null)
+                {
+                    if (((CheckBox)c).Checked)
+                    {
+                        int index = Convert.ToInt32(c.Tag);
+                        valueLock[index] = true;
+                        resourceModify((ResourceTypes)index, prevValue[index]);
+                    }
+                    else
+                    {
+                        int index = Convert.ToInt32(c.Tag);
+                        valueLock[index] = false;
+                    }
+                }
+            }
+            // 更新文本框资源的值
             if (GameBaseAddress != IntPtr.Zero) {
                 int valueTurn = resourceGet(ResourceTypes.Turn);
-                if (prevTurnValue != valueTurn)
+                if (!valueLock[0] && prevValue[0] != valueTurn)
                 {
-                    prevTurnValue = valueTurn;
+                    prevValue[0] = valueTurn;
                     textBoxTurn.Text = (valueTurn - 35).ToString();
+                }
+                int valueCredits = resourceGet(ResourceTypes.Credits);
+                if (!valueLock[1] && prevValue[1] != valueCredits)
+                {
+                    prevValue[1] = valueCredits;
+                    textBoxCredits.Text = valueCredits.ToString();
+                }
+                int valueFuel = resourceGet(ResourceTypes.Fuel);
+                if (!valueLock[2] && prevValue[2] != valueFuel)
+                {
+                    prevValue[2] = valueFuel;
+                    textBoxFuel.Text = valueFuel.ToString();
                 }
             }
         }
@@ -122,8 +151,9 @@ namespace STF_Trainer
         private IntPtr assembleResourceAddress(ResourceTypes res)
         {
             // 每种资源在游戏基址上的偏移量序列
-            int[,] offsetMap = { { 0x28, 0x14, 0x14, 0x08, 0x04, 0x14, 0xa4, 0x4c, 0xff },
-                                 { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xff }};
+            int[,] offsetMap = { { 0x28, 0x14, 0x14, 0x08, 0x04, 0x14, 0xa4, 0x4c, 0xff, 0xff, 0xff },
+                                 { 0x28, 0x14, 0x14, 0x08, 0x04, 0x14, 0xa4, 0x24, 0xff, 0xff, 0xff },
+                                 { 0x28, 0x14, 0x14, 0x08, 0x08, 0x14, 0x124, 0x20, 0x6c, 0x50, 0xff} };
             
             int tempPtr = ReadMemoryValue(GameProcessHandle, GameBaseAddress + 0x00852D1C);
             int i = 0;
@@ -139,6 +169,18 @@ namespace STF_Trainer
         {
             int newValue = int.Parse(textBoxTurn.Text);
             resourceModify(ResourceTypes.Turn, newValue + 35);
+        }
+
+        private void buttonCredits_Click(object sender, EventArgs e)
+        {
+            int newValue = int.Parse(textBoxCredits.Text);
+            resourceModify(ResourceTypes.Credits, newValue);
+        }
+        private void buttonFuel_Click(object sender, EventArgs e)
+        {
+            int newValue = int.Parse(textBoxFuel.Text);
+            resourceModify(ResourceTypes.Fuel, newValue);
+
         }
         private void buttonSaveFile_Click(object sender, EventArgs e)
         {
